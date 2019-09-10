@@ -121,6 +121,7 @@ class Collection(ClientCore):
         self.html_url = self.session.build_url(
             "contents", f"{self.id}@{self.version}.html")
         self.slug = self.tree["slug"]
+        self.license = License(json["license"])
         self.table_of_contents = TableOfContents(self.tree, self.id, self.session)
 
     def _repr(self):
@@ -141,7 +142,7 @@ class SubCollection(ClientCore):
         self.html_title = json["title"]
         self.short_id = json["shortId"]
         self.title = self.soup(
-            json["title"]).find('span', attrs={"class": "os-text"}).text
+            json["title"], "html.parser").find('span', attrs={"class": "os-text"}).text
         self.html_url = self.session.build_url("contents", f"{self.collection_id}:{self.id}.html")
         self.json_url = self.session.build_url("contents", f"{self.collection_id}:{self.id}.json")
 
@@ -187,7 +188,7 @@ class Module(ClientCore):
         self.html_title = json["title"]
         self.short_id = json["shortId"]
         self.title = self.soup(
-            json["title"]).find('span', attrs={"class": "os-text"}).text
+            json["title"], "html.parser").find('span', attrs={"class": "os-text"}).text
         self.html_url = self.session.build_url("contents", f"{self.collection_id}:{self.id}.html")
         self.json_url = self.session.build_url("contents", f"{self.collection_id}:{self.id}.json")
 
@@ -205,8 +206,21 @@ class Module(ClientCore):
     @property
     def section_num(self):
         section_num = self.soup(
-            self.html_title).find('span', attrs={"class": "os-number"})
+            self.html_title, "html.parser").find('span', attrs={"class": "os-number"})
         if section_num:
             return section_num.text
         else:
             return None
+
+
+class License(ClientCore):
+    _class_name = "License"
+
+    def _update_attributes(self, json):
+        self.url = json["url"]
+        self.code = json["code"]
+        self.version = json["version"]
+        self.name = json["name"]
+
+    def _repr(self):
+        return f"<{self._class_name} [{self.name} {self.version}]>"
