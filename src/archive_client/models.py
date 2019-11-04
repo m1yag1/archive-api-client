@@ -123,6 +123,7 @@ class Collection(ClientCore):
         self.slug = self.tree["slug"]
         self.license = License(json["license"])
         self.table_of_contents = TableOfContents(self.tree, self.id, self.session)
+        self.history = [History(item, self.session) for item in json["history"]]
 
     def _repr(self):
         return f"<{self._class_name} [{self.title}]>"
@@ -224,3 +225,31 @@ class License(ClientCore):
 
     def _repr(self):
         return f"<{self._class_name} [{self.name} {self.version}]>"
+
+
+class History(ClientCore):
+    _class_name = "History"
+
+    def _update_attributes(self, json):
+        self.changes = json["changes"]
+        self.version = json["version"]
+        self.revised = self._strptime(json["revised"])
+        self.publisher = Publisher(json["publisher"], session=self.session)
+
+    def _repr(self):
+        return f"<{self._class_name} [{self.version}]>"
+
+
+class Publisher(ClientCore):
+    _class_name = "Publisher"
+
+    def _update_attributes(self, json):
+        self.surname = json["surname"]
+        self.suffix = json["suffix"]
+        self.firstname = json["firstname"]
+        self.title = json["title"]
+        self.fullname = json["fullname"]
+        self.id = json["id"]
+
+    def _repr(self):
+        return f"<{self._class_name} [{self.id}]>"
